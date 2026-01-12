@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Calculator Vault</title>
+<style>
+*{box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}
+body{margin:0;background:#111;color:#eee;height:100vh;display:flex;align-items:center;justify-content:center}
+
+/* ===== CALCULATOR ===== */
+#calculator{width:320px;background:#1b1b1b;border-radius:16px;padding:16px;box-shadow:0 10px 30px rgba(0,0,0,.6)}
+#historyBar{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+#history{max-height:70px;overflow-y:auto;font-size:12px;color:#aaa}
+#clearHistory{font-size:11px;background:#333;color:#ff6b6b;padding:4px 8px;border-radius:8px;cursor:pointer}
+#display{margin:10px 0;background:#000;color:#ddd;font-size:26px;padding:12px;height:48px;display:flex;align-items:center;overflow:hidden;border-radius:10px}
+.cursor{width:2px;height:26px;margin-left:4px;background:#777;animation:blink 2s infinite}
+@keyframes blink{0%,50%,100%{opacity:1}25%,75%{opacity:0}}
+.buttons{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+button{height:52px;border:none;border-radius:12px;font-size:18px;cursor:pointer;box-shadow:0 4px #111}
+button:active{transform:translateY(2px);box-shadow:0 2px #000}
+.num{background:linear-gradient(#333,#222);color:#fff}
+.op{background:linear-gradient(#444,#333);color:#ffb84d}
+.ctrl{background:linear-gradient(#555,#444);color:#ff6b6b}
+.eq{background:linear-gradient(#ffb84d,#e09a2f);color:#000}
+
+/* ===== VAULT ===== */
+#vault{position:fixed;inset:0;background:#0e0e0e;display:none;flex-direction:column}
+#vaultHeader{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid #222}
+#vaultHeader h1{margin:0;font-size:18px;font-weight:500}
+#addNote{font-size:14px;cursor:pointer;background:#222;padding:8px 14px;border-radius:10px}
+#exitVault{position:absolute;right:16px;bottom:16px;background:#2a2a2a;color:#ff6b6b;padding:10px 16px;border-radius:12px}
+#notesList{flex:1;overflow-y:auto;padding:16px}
+.noteItem{background:#1e1e1e;margin-bottom:12px;padding:14px;border-radius:12px;cursor:pointer}
+
+/* ===== EDITOR ===== */
+#editorScreen{display:none;flex-direction:column;flex:1}
+#toolbar{display:flex;gap:6px;padding:8px;background:#181818;border-bottom:1px solid #222}
+#toolbar button{height:34px;font-size:14px}
+#editor{flex:1;padding:18px;outline:none;overflow-y:auto}
+#editor img{max-width:100%;resize:both;overflow:auto;border-radius:8px;cursor:nwse-resize}
+
+.deleteNote{
+  color:#ff6b6b;
+  font-size:12px;
+  cursor:pointer;
+  margin-left:10px;
+}
+.noteItem{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+</style>
+</head>
+<body>
+
+<div id="calculator">
+  <div id="historyBar">
+    <div id="history"></div>
+    <div id="clearHistory" onclick="clearHistory()">Clear</div>
+  </div>
+
+  <div id="display"><span id="dispText"></span><span class="cursor"></span></div>
+
+  <div class="buttons">
+    <button class="ctrl" onclick="clearAll()">C</button>
+    <button class="ctrl" onclick="delChar()">DEL</button>
+    <button class="op" onclick="add('/')">/</button>
+    <button class="op" onclick="add('*')">*</button>
+
+    <button class="num" onclick="add('7')">7</button>
+    <button class="num" onclick="add('8')">8</button>
+    <button class="num" onclick="add('9')">9</button>
+    <button class="op" onclick="add('-')">-</button>
+
+    <button class="num" onclick="add('4')">4</button>
+    <button class="num" onclick="add('5')">5</button>
+    <button class="num" onclick="add('6')">6</button>
+    <button class="op" onclick="add('+')">+</button>
+
+    <button class="num" onclick="add('1')">1</button>
+    <button class="num" onclick="add('2')">2</button>
+    <button class="num" onclick="add('3')">3</button>
+    <button class="eq" onclick="calc()">=</button>
+
+    <button class="num" style="grid-column:span 4" onclick="add('0')">0</button>
+  </div>
+</div>
+
+<div id="vault">
+  <div id="vaultHeader">
+    <h1>My Notes</h1>
+    <div id="addNote" onclick="createNote()">New Note +</div>
+  </div>
+
+  <div id="notesList"></div>
+
+  <div id="editorScreen">
+    <div id="toolbar">
+      <button title="Bold" onclick="cmd('bold')">B</button>
+      <button title="Italic" onclick="cmd('italic')">I</button>
+      <button title="Underline" onclick="cmd('underline')">U</button>
+      <button title="Strikethrough" onclick="cmd('strikeThrough')">S</button>
+      <button title="Undo" onclick="cmd('undo')">↶</button>
+      <button title="Redo" onclick="cmd('redo')">↷</button>
+      <button title="Insert Image (resizable)" onclick="addImage()">
+        <svg width="16" height="16" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+          <circle cx="8.5" cy="8.5" r="1.5"></circle>
+          <polyline points="21 15 16 10 5 21"></polyline>
+        </svg>
+      </button>
+      <button title="Back to Notes" onclick="backToList()">Back</button>
+    </div>
+    <div id="editor" contenteditable="true"></div>
+  </div>
+
+  <button id="exitVault" onclick="exitVaultFn()">Exit</button>
+</div>
+
+<script>
+let input='';
+let resetNext=false;   
+let history=JSON.parse(localStorage.getItem('history')||'[]');
+let notes=JSON.parse(localStorage.getItem('notes')||'[]');
+let currentNote=null;
+
+function updateDisplay(){dispText.textContent=input}
+
+function add(v){
+  if(resetNext){ input=''; resetNext=false; }
+  input+=v;
+  updateDisplay();
+}
+
+function clearAll(){ input=''; resetNext=false; updateDisplay() }
+function delChar(){ 
+  if(resetNext){ input=''; resetNext=false; } 
+  else{ input=input.slice(0,-1) } 
+  updateDisplay() 
+}
+
+function calc(){
+  if(input==='69/67'){ openVault(); input=''; resetNext=false; updateDisplay(); return; }
+  try{
+    let r=eval(input);
+    history.unshift(`${input} = ${r}`);
+    history=history.slice(0,10);
+    localStorage.setItem('history',JSON.stringify(history));
+    input=String(r); resetNext=true; updateDisplay(); renderHistory();
+  }catch{ input='Error'; resetNext=true; updateDisplay() }
+}
+
+function renderHistory(){historyEl.innerHTML=history.join('<br>')}
+function clearHistory(){history=[];localStorage.removeItem('history');renderHistory()}
+const historyEl=document.getElementById('history');renderHistory();
+
+function openVault(){calculator.style.display='none';vault.style.display='flex';renderNotes()}
+function exitVaultFn(){saveCurrentNote();vault.style.display='none';calculator.style.display='block'}
+
+function renderNotes(){
+  editorScreen.style.display='none';
+  notesList.style.display='block';
+  notesList.innerHTML='';
+
+  notes.forEach((n,i)=>{
+    let d=document.createElement('div');
+    d.className='noteItem';
+
+    let titleSpan=document.createElement('span');
+    titleSpan.className='noteTitle';
+    let tempDiv=document.createElement('div'); tempDiv.innerHTML=n;
+    let firstLine=tempDiv.innerText.split('\n')[0].trim();
+    titleSpan.innerText = firstLine || 'Untitled';
+    titleSpan.onclick = ()=>openNote(i);
+
+    let delBtn=document.createElement('button');
+    delBtn.style.marginLeft='10px';
+    delBtn.style.background='#ff4d4d';
+    delBtn.style.border='none';
+    delBtn.style.borderRadius='6px';
+    delBtn.style.color='#fff';
+    delBtn.style.cursor='pointer';
+    delBtn.innerText='Delete';
+    delBtn.onclick=(e)=>{
+      e.stopPropagation();
+      if(currentNote===i){ editor.innerHTML=''; currentNote=null; } // clear editor if deleting open note
+      notes.splice(i,1);
+      saveNotes();
+      renderNotes();
+    }
+
+    d.appendChild(titleSpan);
+    d.appendChild(delBtn);
+    notesList.appendChild(d);
+  });
+}
+
+function createNote(){
+  notes.unshift('');   
+  saveNotes();
+  renderNotes();
+
+  currentNote = 0;    
+  editor.innerHTML = ''; // clear editor completely
+  notesList.style.display='none';
+  editorScreen.style.display='flex';
+}
+
+function openNote(i){currentNote=i;notesList.style.display='none';editorScreen.style.display='flex';editor.innerHTML=notes[i]}
+function backToList(){saveCurrentNote();currentNote=null;renderNotes()}
+function saveCurrentNote(){if(currentNote!==null){notes[currentNote]=editor.innerHTML;saveNotes()}}
+function saveNotes(){localStorage.setItem('notes',JSON.stringify(notes))}
+
+function cmd(c){document.execCommand(c,false,null);saveCurrentNote()}
+
+function addImage(){
+  const f=document.createElement('input');
+  f.type='file';
+  f.accept='image/*';
+  f.onchange=e=>{
+    const file=e.target.files[0];
+    if(!file) return;
+    const reader=new FileReader();
+    reader.onload=()=>{
+      const img=document.createElement('img');
+      img.src=reader.result;
+      img.style.maxWidth='100%';
+      img.style.maxHeight='400px';
+      img.style.borderRadius='8px';
+      img.style.cursor='nwse-resize';
+      img.setAttribute('contenteditable','false');
+
+      const sel=window.getSelection();
+      if(sel.rangeCount>0){
+        const range=sel.getRangeAt(0);
+        range.deleteContents();
+        const wrapper=document.createElement('div');
+        wrapper.appendChild(img);
+        range.insertNode(wrapper);
+        const br=document.createElement('br'); wrapper.appendChild(br);
+        const newRange=document.createRange();
+        newRange.setStartAfter(br); newRange.setEndAfter(br);
+        sel.removeAllRanges(); sel.addRange(newRange);
+      } else { editor.appendChild(img); editor.appendChild(document.createElement('br')); }
+      saveCurrentNote();
+    }
+    reader.readAsDataURL(file);
+  };
+  f.click();
+}
+</script>
+</body>
+</html>
