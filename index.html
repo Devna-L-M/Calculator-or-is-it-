@@ -187,6 +187,9 @@ function renderNotes(){
     delBtn.onclick = (e)=>{
   e.stopPropagation();
 
+  const ok = confirm("Are you sure you want to delete this note?");
+  if(!ok) return;
+
   notes.splice(i,1);
   saveNotes();
 
@@ -197,7 +200,8 @@ function renderNotes(){
   if (sel) sel.removeAllRanges();
 
   renderNotes();
-}
+};
+
 
 
     d.appendChild(titleSpan);
