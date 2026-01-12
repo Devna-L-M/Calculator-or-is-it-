@@ -103,7 +103,7 @@ button:active{transform:translateY(2px);box-shadow:0 2px #000}
       <button title="Strikethrough" onclick="cmd('strikeThrough')">S</button>
       <button title="Undo" onclick="cmd('undo')">↶</button>
       <button title="Redo" onclick="cmd('redo')">↷</button>
-      <button title="Insert Image" onclick="addImage()">
+      <button title="Insert Image (resizable)" onclick="addImage()">
         <svg width="16" height="16" viewBox="0 0 24 24"
              fill="none" stroke="currentColor" stroke-width="2"
              stroke-linecap="round" stroke-linejoin="round">
@@ -184,13 +184,21 @@ function renderNotes(){
     delBtn.style.color='#fff';
     delBtn.style.cursor='pointer';
     delBtn.innerText='Delete';
-    delBtn.onclick=(e)=>{
-      e.stopPropagation();
-      if(currentNote===i){ editor.innerHTML=''; currentNote=null; } 
-      notes.splice(i,1);
-      saveNotes();
-      renderNotes();
-    }
+    delBtn.onclick = (e)=>{
+  e.stopPropagation();
+
+  notes.splice(i,1);
+  saveNotes();
+
+  editor.innerHTML = '';
+  currentNote = null;
+
+  const sel = window.getSelection();
+  if (sel) sel.removeAllRanges();
+
+  renderNotes();
+}
+
 
     d.appendChild(titleSpan);
     d.appendChild(delBtn);
@@ -199,15 +207,21 @@ function renderNotes(){
 }
 
 function createNote(){
-  notes.unshift('');   
-  saveNotes();
-  renderNotes();
+  editor.innerHTML = '';
+  currentNote = null;
 
-  currentNote = 0;    
-  editor.innerHTML = ''; 
-  notesList.style.display='none';
-  editorScreen.style.display='flex';
+  const sel = window.getSelection();
+  if (sel) sel.removeAllRanges();
+
+  notes.unshift('');
+  saveNotes();
+
+  currentNote = 0;
+  notesList.style.display = 'none';
+  editorScreen.style.display = 'flex';
 }
+
+
 
 function openNote(i){currentNote=i;notesList.style.display='none';editorScreen.style.display='flex';editor.innerHTML=notes[i]}
 function backToList(){saveCurrentNote();currentNote=null;renderNotes()}
@@ -254,5 +268,3 @@ function addImage(){
 </script>
 </body>
 </html>
-
-
