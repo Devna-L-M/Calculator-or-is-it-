@@ -7,7 +7,7 @@
 *{box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}
 body{margin:0;background:#111;color:#eee;height:100vh;display:flex;align-items:center;justify-content:center}
 
-/* ===== CALCULATOR ===== */
+/*CALCULATOR*/
 #calculator{width:320px;background:#1b1b1b;border-radius:16px;padding:16px;box-shadow:0 10px 30px rgba(0,0,0,.6)}
 #historyBar{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
 #history{max-height:70px;overflow-y:auto;font-size:12px;color:#aaa}
@@ -103,7 +103,7 @@ button:active{transform:translateY(2px);box-shadow:0 2px #000}
       <button title="Strikethrough" onclick="cmd('strikeThrough')">S</button>
       <button title="Undo" onclick="cmd('undo')">↶</button>
       <button title="Redo" onclick="cmd('redo')">↷</button>
-      <button title="Insert Image (resizable)" onclick="addImage()">
+      <button title="Insert Image" onclick="addImage()">
         <svg width="16" height="16" viewBox="0 0 24 24"
              fill="none" stroke="currentColor" stroke-width="2"
              stroke-linecap="round" stroke-linejoin="round">
@@ -254,4 +254,5 @@ function addImage(){
 </script>
 </body>
 </html>
+
 
